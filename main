@@ -1,0 +1,47 @@
+import pandas as pd
+import quandl
+import math
+import numpy as np
+from sklearn import preprocessing, svm
+from sklearn.model_selection import cross_validate
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+
+
+rx = quandl.get('CHRIS/CME_HG12',api_key='ssz8fhz-tpxGgUC5guUo')
+
+'print(rx.head())'
+
+rx = rx[['Open','High','Low','Volume', 'Previous Day Open Interest',]]
+'''
+//print(rx.head())
+'''
+print(rx.head())
+
+predict_col = 'Volume'
+rx.fillna(-99999,inplace=True)
+
+
+predict_out = int(math.ceil(0.01*len(rx)))
+rx['output'] = rx[predict_col].shift(-predict_out)
+
+
+'print(rx.head())'
+X = np.array(rx.drop(['output'],1))
+X=X[:-predict_out]
+X_predict= X[-predict_out:]
+X = preprocessing.scale(X)
+
+rx.dropna(inplace=True)
+Y= np.array(rx['output'])
+Y= np.array(rx['output'])
+
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y,test_size=0.23)
+'X_train, X_test, Y_train, Y_test = cross_validate.train_test_split(X,Y,test_size=0.3)'
+clf = LinearRegression(n_jobs=1)
+'clf = svm.LinearSVR()'
+clf.fit(X_train,Y_train)
+acc = clf.score(X_test,Y_test)
+pred_nxt= clf.predict(X_predict)
+print(pred_nxt,acc,predict_out)
